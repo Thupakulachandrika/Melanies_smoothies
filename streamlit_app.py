@@ -25,16 +25,25 @@ pd_df=my_dataframe.to_pandas()
 ingredients_list=st.multiselect('choose up to 5 ingredients:',my_dataframe,max_selections=5)
 
 if ingredients_list:
-    ingredients_string= ''
+    ingredients_string = ''
     for fruit_chosen in ingredients_list:
-        ingredients_string+= fruit_chosen + ' '
-        search_on=pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
-        #st.write('The search value for ', fruit_chosen,' is ', search_on, '.')
+        ingredients_string += fruit_chosen + ' '
+        search_on = pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
+        # st.write('The search value for ', fruit_chosen, ' is ', search_on, '.')
 
-        st.subheader(fruit_chosen +'Nutrition Information')
-        fruityvice_response = requests.get("https://fruityvice.com/api/fruit/" + search_on)
-        fv_df=st.dataframe(data=fruityvice_response.json(),use_container_width=True)
-        #st_df=st.dataframe(data=smoothiefroot_response.json(),use_container_width=True)
+        st.subheader(fruit_chosen + ' Nutrition Information')
+        
+        try:
+            fruityvice_response = requests.get("https://fruityvice.com/api/fruit/" + search_on)
+            fruityvice_response.raise_for_status()  # Check if the request was successful
+            fv_data = fruityvice_response.json()  # Parse JSON response
+            fv_df = st.dataframe(data=fv_data, use_container_width=True)
+        except requests.exceptions.HTTPError as http_err:
+            st.error(f"HTTP error occurred: {http_err}")
+        except requests.exceptions.RequestException as req_err:
+            st.error(f"Request error occurred: {req_err}")
+        except json.JSONDecodeError:
+            st.error("Error decoding JSON response. The response might be empty or not in JSON format.")
 
     #st.write(ingredients_string) 
      
